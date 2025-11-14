@@ -291,7 +291,52 @@ Datos almacenados:
 
 ### Diagrama de Componentes General
 
-![alt text](docs/uml/DiagramaComponentesGeneral.png)
+![alt text](docs/uml/diagramaComponentesGeneral.png)
+
+Este diagrama describe los componentes principales, tecnologías y flujo de comunicación del sistema RideCI, orientado a la búsqueda y reserva de viajes.
+
+
+#### Arquitectura General
+
+La arquitectura está compuesta por:
+
+- **Frontend (RideCI Front)**
+- **API Gateway**
+- **Microservicio Search and Booking**
+- **Base de Datos Travel DB**
+
+#### Frontend – RideCI Front
+
+Desarrollado con:
+
+- **TypeScript**
+- **React**
+- **Figma** (diseño UI/UX)
+- **Vercel** (despliegue)
+
+El frontend se encarga de la interfaz de usuario y se comunica con el sistema mediante el **API Gateway**.
+
+
+#### API Gateway
+
+El API Gateway centraliza las peticiones del frontend y las distribuye a los microservicios.
+
+
+#### Microservicio Search and Booking
+
+Este microservicio se encarga de:
+
+- Buscar viajes disponibles
+- Gestionar reservas
+- Consultar datos de disponibilidad y rutas
+
+
+#### Base de Datos – Travel DB
+
+La información de viajes y reservas se almacena en **Travel DB**, basada en:
+
+- **PostgreSQL**
+- (Opcional/complementario) **MongoDB**
 
 
 ---
