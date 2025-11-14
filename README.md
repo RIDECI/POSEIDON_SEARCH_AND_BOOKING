@@ -333,17 +333,131 @@ Este microservicio se encarga de:
 
 #### Base de Datos – Travel DB
 
-La información de viajes y reservas se almacena en **Travel DB**, basada en:
-
-- **PostgreSQL**
-- (Opcional/complementario) **MongoDB**
+La información de viajes y reservas se almacena en **Travel DB**, basada en **MongoDB**
 
 
 ---
 
 ### Diagrama de Componentes Específico
 
-![alt text](docs/uml/DiagramaComponentesEspecifico.png)
+![alt text](docs/uml/diagramaComponentesEspecificos.png)
+
+Este documento describe la arquitectura interna del microservicio **Search and Booking**, siguiendo los principios de **Clean Architecture** y **Arquitectura Hexagonal (Ports & Adapters)**.  
+Incluye controladores, casos de uso, puertos, adaptadores, repositorios e integraciones externas.
+
+####  Flujo General del Sistema
+
+El frontend se comunica con el backend a través de un **API Gateway**.  
+El backend procesa peticiones de búsqueda y reserva utilizando casos de uso, conectados mediante puertos y adaptadores hacia la base de datos y microservicios externos.
+
+#### Componentes Internos del Backend
+
+  **Controllers**
+
+Punto de entrada de las solicitudes desde el API Gateway:
+
+- SearchController  
+  - Maneja solicitudes de búsqueda y disponibilidad de viajes.
+
+- BookingController  
+  - Gestiona creación, cancelación, consulta y actualización de reservas.
+
+---
+
+#### Casos de Uso (Use Cases)
+
+Los casos de uso representan la lógica de negocio del sistema:
+
+**Casos de búsqueda**
+- GetTravelUseCase
+- SearchAvailableTravelsUseCase
+
+ **Casos de reservas**
+- CreateBookingUseCase
+- CancelBookingUseCase
+- GetBookingUseCase
+- PutBookingUseCase
+- NotifyBookingStatusUseCase
+
+**Casos de confirmación y pago**
+- ConfirmBookingUseCase
+- ConfirmPaymentUseCase
+- ValidateBookingAvailabilityUseCase
+#### Puertos (Ports)
+
+Interfaces que permiten el desacoplamiento entre lógica de negocio y servicios externos:
+
+ Para búsqueda
+- SearchAvailableTravelsPort
+
+ Para reservas
+- BookingRepositoryPort
+
+Para validaciones
+- ValidateBookingAvailabilityPort
+
+ Para confirmaciones
+- ConfirmBookingPort
+- ConfirmPaymentPort
+
+---
+
+#### Adaptadores 
+
+Implementaciones concretas de los puertos, encargadas de interactuar con sistemas externos:
+
+ Adaptadores de búsqueda
+- SearchAdapter
+- SearchAvailableTravelsAdapter
+- MapperSearchAdapter
+
+ Adaptadores de reservas
+- BookingAdapter
+- MapperBookingAdapter
+
+Adaptadores de confirmación y pagos
+- ConfirmBookingAdapter
+- ConfirmPaymentAdapter
+- ValidateBookingAvailabilityAdapter
+
+#### Repositorios
+
+Manejadores del acceso a datos y persistencia:
+
+- BookingRepository
+- MapperRepository
+
+Ambos implementan los puertos de repositorio necesarios para los casos de uso.
+
+---
+
+#### Integraciones Externas
+
+El servicio se conecta con otros microservicios especializados:
+
+**TravelManagement**
+- Consultas de viajes
+- Actualización de disponibilidad  
+Tecnologías: Spring Boot, Docker, SonarQube, Jacoco
+
+**Notifications**
+- Envío de notificaciones sobre estado de reservas  
+Tecnologías: Spring Boot, Docker, SonarQube, Jacoco
+
+**Payments**
+- Gestión y confirmación de pagos  
+Tecnologías: Spring Boot, Docker, SonarQube, Jacoco
+
+#### Base de Datos
+
+La información persistente del sistema se encuentra en:
+
+- **MongoDB** 
+
+Se almacenan datos de:
+- Reservas
+- Estado de viajes
+- Confirmaciones y pagos
 
 ---
 
