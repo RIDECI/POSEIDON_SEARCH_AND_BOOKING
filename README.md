@@ -217,26 +217,107 @@ Implementa los **detalles técnicos**: controladores REST, persistencia, configu
 
 ## Diagramas del Módulo
 
+
+## Diagrama de Contexto
+
+![alt text](docs/uml/DiagramaContexto.png)
+
+
+---
+
+### Diagrama de Despliegue
+
+![DiagramaDespliegue](docs/uml/diagramaDespliegue.png)
+
+Este diagrama muestra la arquitectura de despliegue del módulo **Search and Book**, incluyendo cómo interactúan el cliente, el backend principal, los microservicios externos, la base de datos MongoDB y las herramientas CI/CD.
+
+
+####  Cliente (Front-End Web App)
+
+La aplicación cliente está desarrollada con:
+
+- **React**
+- **TypeScript**
+
+Se comunica con el backend mediante:
+
+- **HTTPS**
+- **WebSockets**
+
+Desde aquí el usuario realiza búsquedas, reservas y recibe actualizaciones en tiempo real.
+
+#### **Search and Book**
+Responsabilidades:
+- Gestión de búsqueda de viajes  
+- Administración de reservas  
+- Alertas emergentes  
+- Manejo de disponibilidad de viajes  
+- Comunicación con otros servicios del ecosistema  
+
+Tecnologías internas:
+- **Spring Boot**
+- **Jacoco** (cobertura)
+- **SonarQube** (análisis de calidad)
+- **Docker**
+
+Este backend actúa como punto central entre el cliente, la base de datos y los microservicios.
+
+
+#### Microservicios Externos
+
+ **a) Gestión de Viajes (Viajes)**
+- Maneja la disponibilidad y administración de los viajes.
+- Recibe solicitudes del módulo Search and Book.
+
+**b) Notificaciones (Email/App)**
+- Envía correos, alertas y notificaciones.
+- Recibe eventos del backend Search and Book.
+
+**c) Pagos (Registro)**
+- Administra el registro de pagos.
+- Se integra para almacenar transacciones relacionadas con reservas.
+
+
+#### Base de Datos — MongoDB
+
+El módulo Search and Book se conecta directamente a **MongoDB** mediante el driver oficial.
+
+Datos almacenados:
+- **Viajes disponibles**
+- **Reservas**
+- **Estado de cada reserva**
+
+---
+
+### Diagrama de Componentes General
+
+![alt text](docs/uml/DiagramaComponentesGeneral.png)
+
+
+---
+
 ### Diagrama de Componentes Específico
 
+![alt text](docs/uml/DiagramaComponentesEspecifico.png)
 
+---
+
+## Diagrama de Casos de Uso
+
+![alt text](docs/uml/DiagramaCasosUso.png)
 
 ---
 
 ### Diagrama de Clases
 
-
+![alt text](docs/uml/DiagramaClases.png)
 
 ---
 
 ### Diagrama de Bases de Datos
 
-
-
----
-
-### Diagrama de Despliegue Específico del Módulo
-
-
+![DiagramaBasesDatos](docs/uml/DiagramaBaseDeDatos.png)
 
 ---
+
+
