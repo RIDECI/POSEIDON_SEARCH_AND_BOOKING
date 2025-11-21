@@ -475,8 +475,6 @@ Se almacenan datos de:
 
 ### Diagrama de Bases de Datos
 
-![DiagramaBasesDatos](docs/uml/DiagramaBaseDeDatos.png)
-
 ---
 
 
