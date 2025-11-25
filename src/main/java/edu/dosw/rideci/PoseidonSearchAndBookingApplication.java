@@ -1,4 +1,4 @@
-package edu.dosw.rideci.POSEIDON_SEARCH_AND_BOOKING;
+package edu.dosw.rideci;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
