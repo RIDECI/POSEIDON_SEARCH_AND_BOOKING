@@ -4,8 +4,9 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile #prueba
     container_name: mi-app
+
     ports:
       - "8080:8080"
     environment:
