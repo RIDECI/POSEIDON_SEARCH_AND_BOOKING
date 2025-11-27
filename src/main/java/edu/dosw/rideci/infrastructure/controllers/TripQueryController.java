@@ -2,10 +2,10 @@ package edu.dosw.rideci.infrastructure.controllers;
 
 import edu.dosw.rideci.domain.model.Trip;
 import edu.dosw.rideci.domain.model.enums.TravelType;
-import edu.dosw.rideci.domain.ports.in.SearchTripsPort;
-import edu.dosw.rideci.domain.ports.in.SearchNearbyTripsPort;
-import edu.dosw.rideci.domain.ports.in.GetTripDetailsPort;
-import edu.dosw.rideci.infrastructure.dto.TripResponse;
+import edu.dosw.rideci.application.ports.in.SearchTripsPort;
+import edu.dosw.rideci.application.ports.in.SearchNearbyTripsPort;
+import edu.dosw.rideci.application.ports.in.GetTripDetailsPort;
+import edu.dosw.rideci.infrastructure.dto.Response.TripResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;

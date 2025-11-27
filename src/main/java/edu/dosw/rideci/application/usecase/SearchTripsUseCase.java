@@ -2,8 +2,8 @@ package edu.dosw.rideci.application.usecase;
 
 import edu.dosw.rideci.domain.model.Trip;
 import edu.dosw.rideci.domain.model.enums.TravelType;
-import edu.dosw.rideci.domain.ports.in.SearchTripsPort;
-import edu.dosw.rideci.domain.ports.out.TripProjectionRepositoryPort;
+import edu.dosw.rideci.application.ports.in.SearchTripsPort;
+import edu.dosw.rideci.application.ports.out.TripProjectionRepositoryPort;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;

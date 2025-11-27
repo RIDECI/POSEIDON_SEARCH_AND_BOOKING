@@ -2,7 +2,7 @@ package edu.dosw.rideci.infrastructure.adapters.mongo;
 
 import edu.dosw.rideci.domain.model.Booking;
 import edu.dosw.rideci.domain.model.enums.BookingStatus;
-import edu.dosw.rideci.domain.ports.out.BookingRepositoryPort;
+import edu.dosw.rideci.application.ports.out.BookingRepositoryPort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;

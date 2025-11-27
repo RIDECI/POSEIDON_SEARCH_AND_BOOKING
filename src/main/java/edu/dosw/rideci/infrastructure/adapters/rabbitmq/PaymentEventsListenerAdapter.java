@@ -1,8 +1,8 @@
 package edu.dosw.rideci.infrastructure.adapters.rabbitmq;
 
-import edu.dosw.rideci.domain.ports.in.ConfirmBookingPort;
-import edu.dosw.rideci.domain.ports.in.CancelBookingPort;
-import edu.dosw.rideci.domain.ports.out.PaymentEventsPort;
+import edu.dosw.rideci.application.ports.in.ConfirmBookingPort;
+import edu.dosw.rideci.application.ports.in.CancelBookingPort;
+import edu.dosw.rideci.application.ports.out.PaymentEventsPort;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

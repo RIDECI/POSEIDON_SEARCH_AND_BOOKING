@@ -5,9 +5,9 @@ import edu.dosw.rideci.domain.model.Booking;
 import edu.dosw.rideci.domain.model.Trip;
 import edu.dosw.rideci.domain.model.enums.BookingStatus;
 import edu.dosw.rideci.domain.model.enums.TravelType;
-import edu.dosw.rideci.domain.ports.out.BookingRepositoryPort;
-import edu.dosw.rideci.domain.ports.out.TripProjectionRepositoryPort;
-import edu.dosw.rideci.domain.ports.out.EventPublisherPort;
+import edu.dosw.rideci.application.ports.out.BookingRepositoryPort;
+import edu.dosw.rideci.application.ports.out.TripProjectionRepositoryPort;
+import edu.dosw.rideci.application.ports.out.EventPublisherPort;
 import edu.dosw.rideci.exceptions.TripNotFoundException;
 import edu.dosw.rideci.exceptions.InsufficientSeatsException;
 
