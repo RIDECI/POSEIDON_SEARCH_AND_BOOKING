@@ -2,7 +2,7 @@ package edu.dosw.rideci.infrastructure.adapters.mongo;
 
 import edu.dosw.rideci.domain.model.Trip;
 import edu.dosw.rideci.domain.model.enums.TravelType;
-import edu.dosw.rideci.domain.ports.out.TripProjectionRepositoryPort;
+import edu.dosw.rideci.application.ports.out.TripProjectionRepositoryPort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;

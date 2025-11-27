@@ -1,7 +1,7 @@
 package edu.dosw.rideci.application.usecase;
 
 import edu.dosw.rideci.domain.model.Trip;
-import edu.dosw.rideci.domain.ports.out.TripProjectionRepositoryPort;
+import edu.dosw.rideci.application.ports.out.TripProjectionRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

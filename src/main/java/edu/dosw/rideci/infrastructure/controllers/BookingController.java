@@ -1,12 +1,12 @@
 package edu.dosw.rideci.infrastructure.controllers;
 
 import edu.dosw.rideci.domain.model.Booking;
-import edu.dosw.rideci.domain.ports.in.CreateBookingPort;
-import edu.dosw.rideci.domain.ports.in.CancelBookingPort;
-import edu.dosw.rideci.domain.ports.in.ConfirmBookingPort;
-import edu.dosw.rideci.infrastructure.dto.CreateBookingRequest;
-import edu.dosw.rideci.infrastructure.dto.CancelBookingRequest;
-import edu.dosw.rideci.infrastructure.dto.BookingResponse;
+import edu.dosw.rideci.application.ports.in.CreateBookingPort;
+import edu.dosw.rideci.application.ports.in.CancelBookingPort;
+import edu.dosw.rideci.application.ports.in.ConfirmBookingPort;
+import edu.dosw.rideci.infrastructure.dto.Request.CreateBookingRequest;
+import edu.dosw.rideci.infrastructure.dto.Request.CancelBookingRequest;
+import edu.dosw.rideci.infrastructure.dto.Response.BookingResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

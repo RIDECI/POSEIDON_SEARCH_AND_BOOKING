@@ -1,8 +1,8 @@
 package edu.dosw.rideci.application.usecase;
 
 import edu.dosw.rideci.domain.model.Trip;
-import edu.dosw.rideci.domain.ports.in.SearchNearbyTripsPort;
-import edu.dosw.rideci.domain.ports.out.TripProjectionRepositoryPort;
+import edu.dosw.rideci.application.ports.in.SearchNearbyTripsPort;
+import edu.dosw.rideci.application.ports.out.TripProjectionRepositoryPort;
 import org.springframework.stereotype.Component;
 import java.util.List;
 

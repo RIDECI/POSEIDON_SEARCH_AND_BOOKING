@@ -1,6 +1,6 @@
 package edu.dosw.rideci.infrastructure.adapters.rabbitmq;
 
-import edu.dosw.rideci.domain.ports.out.EventPublisherPort;
+import edu.dosw.rideci.application.ports.out.EventPublisherPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
