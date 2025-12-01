@@ -1,8 +1,6 @@
-package edu.dosw.rideci.domain.model;
+package edu.dosw.rideci.infrastructure.controllers.dto.Response;
 
 import java.time.LocalDateTime;
-
-import org.springframework.data.annotation.Id;
 
 import edu.dosw.rideci.domain.model.enums.BookingStatus;
 import lombok.AllArgsConstructor;
@@ -14,9 +12,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Booking {
+public class BookingResponse {
 
-    @Id
     private String id;
     private String travelId;
     private Long passengerId;
