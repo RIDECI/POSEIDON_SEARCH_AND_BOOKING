@@ -60,4 +60,57 @@ public class BookingRepositoryAdapter implements BookingRepositoryPort {
 
     }
 
+    @Override
+    public java.util.Optional<Booking> findBookingById(String id) {
+        return bookingRepository.findById(id)
+                .map(bookingMapper::toDomain);
+    }
+
+    @Override
+    public java.util.List<Booking> findBookingsByPassengerId(Long passengerId) {
+        return bookingRepository.findByPassengerId(passengerId)
+                .stream()
+                .map(bookingMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public java.util.List<Booking> findBookingsByTravelId(String travelId) {
+        return bookingRepository.findByTravelId(travelId)
+                .stream()
+                .map(bookingMapper::toDomain)
+                .toList();
+    }
+
+    @Transactional
+    @Override
+    public Booking updateBooking(Booking booking) {
+        BookingDocument bookingDocument = bookingMapper.toDocument(booking);
+        bookingDocument.setUpdatedAt(LocalDateTime.now());
+        BookingDocument savedDocument = bookingRepository.save(bookingDocument);
+        return bookingMapper.toDomain(savedDocument);
+    }
+
+    @Transactional
+    @Override
+    public void completeBooking(String id) {
+        BookingDocument booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new BookingNotFoundException("The booking with id: {id} not found"));
+
+        booking.setStatus(BookingStatus.COMPLETED);
+        booking.setUpdatedAt(LocalDateTime.now());
+
+        bookingRepository.save(booking);
+    }
+
+    @Override
+    public int countReservedSeatsByTravelId(String travelId) {
+        return bookingRepository.findByTravelId(travelId)
+                .stream()
+                .filter(booking -> booking.getStatus() == BookingStatus.CONFIRMED 
+                        || booking.getStatus() == BookingStatus.PENDING)
+                .mapToInt(BookingDocument::getReservedSeats)
+                .sum();
+    }
+
 }
