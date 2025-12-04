@@ -1,4 +1,4 @@
-package edu.dosw.rideci.infrastructure.controllers.dto.Request;
+package edu.dosw.rideci.application.dto;
 
 import java.time.LocalDateTime;
 
@@ -12,9 +12,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BookingRequest {
+public class CreateBookingCommand {
 
-    private String id;
     private String travelId;
     private Long passengerId;
     private String origin;
@@ -24,10 +23,5 @@ public class BookingRequest {
     private BookingStatus status;
     private String notes;
     private LocalDateTime bookingDate;
-    private LocalDateTime cancellationDate;
-    private LocalDateTime confirmationDate;
-    private String paymentId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
 }

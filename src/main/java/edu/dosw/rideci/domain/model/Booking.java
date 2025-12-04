@@ -20,6 +20,8 @@ public class Booking {
     private String id;
     private String travelId;
     private Long passengerId;
+    private String origin;
+    private String destination;
     private int reservedSeats;
     private Double totalAmount;
     private BookingStatus status;
