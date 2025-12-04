@@ -48,16 +48,17 @@ jobs:
         RABBITMQ_QUEUE_BOOKING_CREATED: ${{ secrets.RABBITMQ_QUEUE_BOOKING_CREATED }}
         RABBITMQ_ROUTING_BOOKING_CREATED: ${{ secrets.RABBITMQ_ROUTING_BOOKING_CREATED }}
     
-    - name: SonarQube Scan
-      run: mvn sonar:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-      env:
-        MONGODB_URI: ${{ secrets.MONGODB_URI }}
-        RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
-        RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
-        RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
-        RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
-        RABBITMQ_VIRTUAL_HOST: ${{ secrets.RABBITMQ_VIRTUAL_HOST }}
-        RABBITMQ_SSL_ENABLED: ${{ secrets.RABBITMQ_SSL_ENABLED }}
-        RABBITMQ_EXCHANGE_BOOKING: ${{ secrets.RABBITMQ_EXCHANGE_BOOKING }}
-        RABBITMQ_QUEUE_BOOKING_CREATED: ${{ secrets.RABBITMQ_QUEUE_BOOKING_CREATED }}
-        RABBITMQ_ROUTING_BOOKING_CREATED: ${{ secrets.RABBITMQ_ROUTING_BOOKING_CREATED }}
+    # SonarQube Scan - Descomentado cuando configures los secretos: SONAR_PROJECT_KEY, SONAR_HOST_URL, SONAR_TOKEN
+    # - name: SonarQube Scan
+    #   run: mvn sonar:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+    #   env:
+    #     MONGODB_URI: ${{ secrets.MONGODB_URI }}
+    #     RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+    #     RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
+    #     RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
+    #     RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+    #     RABBITMQ_VIRTUAL_HOST: ${{ secrets.RABBITMQ_VIRTUAL_HOST }}
+    #     RABBITMQ_SSL_ENABLED: ${{ secrets.RABBITMQ_SSL_ENABLED }}
+    #     RABBITMQ_EXCHANGE_BOOKING: ${{ secrets.RABBITMQ_EXCHANGE_BOOKING }}
+    #     RABBITMQ_QUEUE_BOOKING_CREATED: ${{ secrets.RABBITMQ_QUEUE_BOOKING_CREATED }}
+    #     RABBITMQ_ROUTING_BOOKING_CREATED: ${{ secrets.RABBITMQ_ROUTING_BOOKING_CREATED }}
