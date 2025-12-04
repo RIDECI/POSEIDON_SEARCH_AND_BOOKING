@@ -1,33 +1,24 @@
 package edu.dosw.rideci.infrastructure.persistence.entity;
 
-import java.time.LocalDateTime;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import edu.dosw.rideci.domain.model.enums.BookingStatus;
+import edu.dosw.rideci.domain.model.BookingBase;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Document(collection = "bookings")
-public class BookingDocument {
+public class BookingDocument extends BookingBase {
 
     @Id
     private String id;
-
-    private String travelId;
-    private Long passengerId;
-    private String origin;
-    private String destination;
-    private int reservedSeats;
-    private Double totalAmount;
-    private BookingStatus status;
-    private String notes;
-    private LocalDateTime bookingDate;
-    private LocalDateTime cancellationDate;
-    private LocalDateTime confirmationDate;
-    private String paymentId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
 }

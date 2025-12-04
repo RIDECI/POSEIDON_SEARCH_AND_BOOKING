@@ -55,3 +55,11 @@ Thumbs.db
 
 # Node.js dependencies
 node_modules/
+
+# Environment variables - Contains sensitive credentials
+.env
+.env.local
+.env.*.local
+
+# Application properties with real credentials
+application-local.properties
