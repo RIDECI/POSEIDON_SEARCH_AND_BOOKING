@@ -1,31 +1,19 @@
 package edu.dosw.rideci.infrastructure.controllers.dto.Response;
 
-import java.time.LocalDateTime;
-
-import edu.dosw.rideci.domain.model.enums.BookingStatus;
+import edu.dosw.rideci.domain.model.BookingBase;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookingResponse {
+@EqualsAndHashCode(callSuper = true)
+public class BookingResponse extends BookingBase {
 
     private String id;
-    private String travelId;
-    private Long passengerId;
-    private int reservedSeats;
-    private Double totalAmount;
-    private BookingStatus status;
-    private String notes;
-    private LocalDateTime bookingDate;
-    private LocalDateTime cancellationDate;
-    private LocalDateTime confirmationDate;
-    private String paymentId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
 }

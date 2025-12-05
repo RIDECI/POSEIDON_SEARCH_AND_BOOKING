@@ -51,7 +51,22 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(
             @RequestBody BookingRequest bookingRequest) {
-        Booking booking = createBookingUseCase.createBooking(bookingRequest);
+        
+        // Mapear BookingRequest (Infrastructure) a CreateBookingCommand (Application)
+        edu.dosw.rideci.application.dto.CreateBookingCommand command = 
+            edu.dosw.rideci.application.dto.CreateBookingCommand.builder()
+                .travelId(bookingRequest.getTravelId())
+                .passengerId(bookingRequest.getPassengerId())
+                .origin(bookingRequest.getOrigin())
+                .destination(bookingRequest.getDestination())
+                .reservedSeats(bookingRequest.getReservedSeats())
+                .totalAmount(bookingRequest.getTotalAmount())
+                .status(bookingRequest.getStatus())
+                .notes(bookingRequest.getNotes())
+                .bookingDate(bookingRequest.getBookingDate())
+                .build();
+        
+        Booking booking = createBookingUseCase.createBooking(command);
         BookingResponse response = bookingMapper.toResponse(booking);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

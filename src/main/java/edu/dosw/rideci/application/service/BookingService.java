@@ -1,10 +1,12 @@
 package edu.dosw.rideci.application.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import edu.dosw.rideci.application.mappers.BookingMapperInitial;
+import edu.dosw.rideci.application.dto.CreateBookingCommand;
+import edu.dosw.rideci.application.event.BookingCreatedEvent;
 import edu.dosw.rideci.application.ports.in.CancelBookingUseCase;
 import edu.dosw.rideci.application.ports.in.CompleteBookingUseCase;
 import edu.dosw.rideci.application.ports.in.ConfirmBookingUseCase;
@@ -15,10 +17,11 @@ import edu.dosw.rideci.application.ports.in.GetBookingsByTravelIdUseCase;
 import edu.dosw.rideci.application.ports.in.UpdateBookingSeatsUseCase;
 import edu.dosw.rideci.application.ports.in.ValidateBookingAvailabilityUseCase;
 import edu.dosw.rideci.application.ports.out.BookingRepositoryPort;
+import edu.dosw.rideci.application.ports.out.EventPublisherPort;
 import edu.dosw.rideci.domain.model.Booking;
+import edu.dosw.rideci.domain.model.enums.BookingStatus;
 import edu.dosw.rideci.exceptions.BookingNotFoundException;
 import edu.dosw.rideci.exceptions.InsufficientSeatsException;
-import edu.dosw.rideci.infrastructure.controllers.dto.Request.BookingRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -35,13 +38,41 @@ public class BookingService implements
         ValidateBookingAvailabilityUseCase {
 
     private final BookingRepositoryPort bookingRepositoryPort;
-    private final BookingMapperInitial bookingMapperInitial;
+    private final EventPublisherPort eventPublisherPort;
 
     @Override
-    public Booking createBooking(BookingRequest bookingRequest) {
+    public Booking createBooking(CreateBookingCommand command) {
 
-        Booking booking = bookingMapperInitial.toDomain(bookingRequest);
-        return bookingRepositoryPort.createBooking(booking);
+        Booking booking = Booking.builder()
+                .travelId(command.getTravelId())
+                .passengerId(command.getPassengerId())
+                .origin(command.getOrigin())
+                .destination(command.getDestination())
+                .reservedSeats(command.getReservedSeats())
+                .totalAmount(command.getTotalAmount())
+                .status(command.getStatus() != null ? command.getStatus() : BookingStatus.PENDING)
+                .notes(command.getNotes())
+                .bookingDate(command.getBookingDate())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        Booking createdBooking = bookingRepositoryPort.createBooking(booking);
+
+        // Publicar evento de reserva creada
+        BookingCreatedEvent event = BookingCreatedEvent.builder()
+                .bookingId(createdBooking.getId())
+                .travelId(createdBooking.getTravelId())
+                .origin(createdBooking.getOrigin())
+                .destination(createdBooking.getDestination())
+                .passengerId(createdBooking.getPassengerId())
+                .reservedSeats(createdBooking.getReservedSeats())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        eventPublisherPort.publishBookingCreatedEvent(event);
+
+        return createdBooking;
 
     }
 
