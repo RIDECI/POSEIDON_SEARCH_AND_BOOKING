@@ -150,6 +150,7 @@
 							<exclude>**/enums/**</exclude>
 							<exclude>**/config/*</exclude>
 							<exclude>**/mapper/*</exclude>
+							<exclude>**/mappers/**/*Impl.class</exclude>
 							<exclude>**/exception/*</exclude>
 							<exclude>**/common/*</exclude>
 							<exclude>**/PoseidonSearchAndBookingApplication.class</exclude>
@@ -186,6 +187,7 @@
 							<exclude>**/enums/**</exclude>
 							<exclude>**/config/*</exclude>
 							<exclude>**/mapper/*</exclude>
+							<exclude>**/mappers/**/*Impl.class</exclude>
 							<exclude>**/exception/*</exclude>
 							<exclude>**/common/*</exclude>
 							<exclude>**/PoseidonSearchAndBookingApplication.class</exclude>
