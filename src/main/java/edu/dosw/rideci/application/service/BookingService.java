@@ -1,105 +1,132 @@
 package edu.dosw.rideci.application.service;
 
-import edu.dosw.rideci.infrastructure.persistence.entity.BookingDocument;
-import edu.dosw.rideci.infrastructure.persistence.Repository.BookingRepository;
-import edu.dosw.rideci.exceptions.InsufficientSeatsException;
-import edu.dosw.rideci.exceptions.TripNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import edu.dosw.rideci.application.dto.CreateBookingCommand;
+import edu.dosw.rideci.application.event.BookingCreatedEvent;
+import edu.dosw.rideci.application.ports.in.CancelBookingUseCase;
+import edu.dosw.rideci.application.ports.in.CompleteBookingUseCase;
+import edu.dosw.rideci.application.ports.in.ConfirmBookingUseCase;
+import edu.dosw.rideci.application.ports.in.CreateBookingUseCase;
+import edu.dosw.rideci.application.ports.in.GetBookingByIdUseCase;
+import edu.dosw.rideci.application.ports.in.GetBookingsByPassengerIdUseCase;
+import edu.dosw.rideci.application.ports.in.GetBookingsByTravelIdUseCase;
+import edu.dosw.rideci.application.ports.in.UpdateBookingSeatsUseCase;
+import edu.dosw.rideci.application.ports.in.ValidateBookingAvailabilityUseCase;
+import edu.dosw.rideci.application.ports.out.BookingRepositoryPort;
+import edu.dosw.rideci.application.ports.out.EventPublisherPort;
+import edu.dosw.rideci.domain.model.Booking;
+import edu.dosw.rideci.domain.model.enums.BookingStatus;
+import edu.dosw.rideci.exceptions.BookingNotFoundException;
+import edu.dosw.rideci.exceptions.InsufficientSeatsException;
+import lombok.RequiredArgsConstructor;
 
 @Service
-@Transactional
-public class BookingService {
+@RequiredArgsConstructor
+public class BookingService implements 
+        CreateBookingUseCase, 
+        CancelBookingUseCase, 
+        ConfirmBookingUseCase,
+        GetBookingByIdUseCase,
+        GetBookingsByPassengerIdUseCase,
+        GetBookingsByTravelIdUseCase,
+        UpdateBookingSeatsUseCase,
+        CompleteBookingUseCase,
+        ValidateBookingAvailabilityUseCase {
 
-    private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
-    
-    private final BookingRepository bookingRepository;
-    private final TravelService travelService;
-    
-    public BookingService(BookingRepository bookingRepository, TravelService travelService) {
-        this.bookingRepository = bookingRepository;
-        this.travelService = travelService;
+    private final BookingRepositoryPort bookingRepositoryPort;
+    private final EventPublisherPort eventPublisherPort;
+
+    @Override
+    public Booking createBooking(CreateBookingCommand command) {
+
+        Booking booking = Booking.builder()
+                .travelId(command.getTravelId())
+                .passengerId(command.getPassengerId())
+                .origin(command.getOrigin())
+                .destination(command.getDestination())
+                .reservedSeats(command.getReservedSeats())
+                .totalAmount(command.getTotalAmount())
+                .status(command.getStatus() != null ? command.getStatus() : BookingStatus.PENDING)
+                .notes(command.getNotes())
+                .bookingDate(command.getBookingDate())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        Booking createdBooking = bookingRepositoryPort.createBooking(booking);
+
+        // Publicar evento de reserva creada
+        BookingCreatedEvent event = BookingCreatedEvent.builder()
+                .bookingId(createdBooking.getId())
+                .travelId(createdBooking.getTravelId())
+                .origin(createdBooking.getOrigin())
+                .destination(createdBooking.getDestination())
+                .passengerId(createdBooking.getPassengerId())
+                .reservedSeats(createdBooking.getReservedSeats())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        eventPublisherPort.publishBookingCreatedEvent(event);
+
+        return createdBooking;
+
     }
-    
-    /**
-     * Crear una nueva reserva simple
-     */
-    @Transactional
-    public BookingDocument createSimpleBooking(String tripId, String passengerId, int seatNumber, double totalPrice) {
-        try {
-            logger.info("Creando reserva simple - Viaje: {}, Pasajero: {}, Asiento: {}", 
-                       tripId, passengerId, seatNumber);
-            
-            // Verificar que el viaje existe
-            var tripInfo = travelService.getTripInfo(tripId);
-            if (tripInfo.isEmpty()) {
-                throw new TripNotFoundException("Viaje no encontrado: " + tripId);
-            }
-            
-            // Verificar asientos disponibles
-            if (tripInfo.get().getAvailableSlots() <= 0) {
-                throw new InsufficientSeatsException("No hay asientos disponibles");
-            }
-            
-            // Actualizar asientos disponibles
-            boolean updated = travelService.updateAvailableSeats(tripId, 1);
-            if (!updated) {
-                throw new InsufficientSeatsException("No se pudieron reservar los asientos");
-            }
-            
-            // Crear la reserva usando la entidad existente
-            BookingDocument bookingDocument = new BookingDocument();
-            bookingDocument.setId(UUID.randomUUID().toString());
-            bookingDocument.setRideId(tripId);
-            bookingDocument.setPassengerId(passengerId);
-            bookingDocument.setSeatNumber(seatNumber);
-            bookingDocument.setTotalPrice(totalPrice);
-            bookingDocument.setStatus("PENDING");
-            bookingDocument.setCreatedAt(LocalDateTime.now());
-            
-            BookingDocument savedBooking = bookingRepository.save(bookingDocument);
-            
-            logger.info("Reserva creada exitosamente: {}", savedBooking.getId());
-            
-            return savedBooking;
-            
-        } catch (TripNotFoundException | InsufficientSeatsException e) {
-            logger.warn("Error creando reserva: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            logger.error("Error inesperado creando reserva: {}", e.getMessage(), e);
-            throw new RuntimeException("Error interno creando la reserva", e);
-        }
+
+    @Override
+    public void confirmBooking(String id) {
+        bookingRepositoryPort.confirmBooking(id);
     }
-    
-    /**
-     * Obtener una reserva por ID
-     */
-    public Optional<BookingDocument> getBookingById(String bookingId) {
-        return bookingRepository.findById(bookingId);
+
+    @Override
+    public void cancelBooking(String id) {
+        bookingRepositoryPort.cancelBooking(id);
     }
-    
-    /**
-     * Actualizar estado de una reserva
-     */
-    @Transactional
-    public void updateBookingStatus(String bookingId, String newStatus) {
-        Optional<BookingDocument> optionalBooking = bookingRepository.findById(bookingId);
+
+    @Override
+    public Booking getBookingById(String id) {
+        return bookingRepositoryPort.findBookingById(id)
+                .orElseThrow(() -> new BookingNotFoundException("Booking with id " + id + " not found"));
+    }
+
+    @Override
+    public List<Booking> getBookingsByPassengerId(Long passengerId) {
+        return bookingRepositoryPort.findBookingsByPassengerId(passengerId);
+    }
+
+    @Override
+    public List<Booking> getBookingsByTravelId(String travelId) {
+        return bookingRepositoryPort.findBookingsByTravelId(travelId);
+    }
+
+    @Override
+    public Booking updateSeats(String id, int newSeats) {
+        Booking booking = bookingRepositoryPort.findBookingById(id)
+                .orElseThrow(() -> new BookingNotFoundException("Booking with id " + id + " not found"));
         
-        if (optionalBooking.isPresent()) {
-            BookingDocument booking = optionalBooking.get();
-            booking.setStatus(newStatus);
-            bookingRepository.save(booking);
-            
-            logger.info("Estado de reserva {} actualizado a: {}", bookingId, newStatus);
-        } else {
-            logger.warn("No se encontró la reserva: {}", bookingId);
+        if (newSeats <= 0) {
+            throw new InsufficientSeatsException("Number of seats must be greater than 0");
         }
+        
+        booking.setReservedSeats(newSeats);
+        return bookingRepositoryPort.updateBooking(booking);
     }
+
+    @Override
+    public void completeBooking(String id) {
+        bookingRepositoryPort.completeBooking(id);
+    }
+
+    @Override
+    public boolean validateAvailability(String travelId, int requestedSeats) {
+        int reservedSeats = bookingRepositoryPort.countReservedSeatsByTravelId(travelId);
+        // Asumiendo que cada viaje tiene un máximo de 50 asientos
+        // Este valor debería venir del servicio de viajes
+        int totalSeats = 50;
+        return (reservedSeats + requestedSeats) <= totalSeats;
+    }
+
 }

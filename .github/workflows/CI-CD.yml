@@ -10,6 +10,7 @@ on:
   pull_request:
     branches:
       - develop
+      - main
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -55,6 +56,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
     needs: build
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+      RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
+      RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
+      RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+      RABBITMQ_VIRTUAL_HOST: ${{ secrets.RABBITMQ_VIRTUAL_HOST }}
+      RABBITMQ_SSL_ENABLED: ${{ secrets.RABBITMQ_SSL_ENABLED }}
+      RABBITMQ_QUEUE_BOOKING_CREATED: ${{ secrets.RABBITMQ_QUEUE_BOOKING_CREATED }}
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4

@@ -1,30 +1,28 @@
 package edu.dosw.rideci.application.ports.out;
 
-import edu.dosw.rideci.domain.model.Booking;
-import edu.dosw.rideci.domain.model.enums.BookingStatus;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Puerto de salida para el repositorio de reservas
- */
+import edu.dosw.rideci.domain.model.Booking;
+
 public interface BookingRepositoryPort {
-    
-    Optional<Booking> findById(String id);
-    
-    List<Booking> findByPassengerId(String passengerId);
-    
-    List<Booking> findByTripId(String tripId);
-    
-    List<Booking> findByTripIdAndStatus(String tripId, BookingStatus status);
-    
-    List<Booking> findByPassengerIdAndStatus(String passengerId, BookingStatus status);
-    
-    Booking save(Booking booking);
-    
-    void deleteById(String id);
-    
-    boolean existsById(String id);
-    
-    int countActiveBookingsByTrip(String tripId);
+
+    Booking createBooking(Booking booking);
+
+    void confirmBooking(String id);
+
+    void cancelBooking(String id);
+
+    Optional<Booking> findBookingById(String id);
+
+    List<Booking> findBookingsByPassengerId(Long passengerId);
+
+    List<Booking> findBookingsByTravelId(String travelId);
+
+    Booking updateBooking(Booking booking);
+
+    void completeBooking(String id);
+
+    int countReservedSeatsByTravelId(String travelId);
+
 }

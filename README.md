@@ -1,482 +1,785 @@
-# POSEIDON_SEARCH_AND_BOOKING
+# 📚 Poseidon - Search and Booking Backend
 
+This module is designed to manage travel search and booking operations within the RideCi ecosystem: it searches for available travels, creates bookings, manages booking status (e.g., PENDING, CONFIRMED, CANCELLED), handles seat availability, and publishes booking events to other microservices via RabbitMQ.
 
-## Desarrolladores
+## 👥 Developers
 
-* Deisy Lorena Guzman Cabrales
-* Diego Fernando Chavarro Castillo
-* Oscar Andres Sanchez Porras
-* Samuel Leonardo Albarrachin Vergara
-* Sergio Alejandro Idarraga
-
----
-
-## Tabla de Contenidos
-
-* [ Estrategia de Versionamiento y Branching](#-estrategia-de-versionamiento-y-branching)
-
-  * [ Estrategia de Ramas (Git Flow)](#-estrategia-de-ramas-git-flow)
-  * [ Convenciones de Nomenclatura](#-convenciones-de-nomenclatura)
-  * [ Convenciones de Commits](#-convenciones-de-commits)
-* [ Arquitectura del Proyecto](#-arquitectura-del-proyecto)
-
-  * [ Estructura de Capas](#️-estructura-de-capas)
-* [ Tecnologías Utilizadas](#️-tecnologías-utilizadas)
-* [ Arquitectura Limpia - Organización de Capas](#️-arquitectura-limpia---organización-de-capas)
-* [Diagramas del Módulo](#diagramas-del-módulo)
-
+- Deisy Lorena Guzman Cabrales
+- Diego Fernando Chavarro Castillo
+- Oscar Andres Sanchez Porras
+- Samuel Leonardo Albarrachin Vergara
+- Sergio Alejandro Idarraga
 
 ---
 
-##  Estrategia de Versionamiento y Branching
+## 📑 Content Table
 
-Se implementa una estrategia de versionamiento basada en **GitFlow**, garantizando un flujo de desarrollo **colaborativo, trazable y controlado**.
-
-###  Beneficios:
-
-- Permite trabajo paralelo sin conflictos
-- Mantiene versiones estables y controladas
-- Facilita correcciones urgentes (*hotfixes*)
-- Proporciona un historial limpio y entendible
+1. [Project Architecture](#-project-architecture)
+    - [Hexagonal Structure](#-clean---hexagonal-structure)
+2. [API Documentation](#-api-endpoints)
+    - [Endpoints](#-api-endpoints)
+3. [Input & Output Data](#input-and-output-data)
+4. [Microservices Integration](#-connections-with-other-microservices)
+5. [Technologies](#technologies)
+6. [Branch Strategy](#-branches-strategy--structure)
+7. [System Architecture & Design](#-system-architecture--design)
+8. [Getting Started](#-getting-started)
+9. [Testing](#-testing)
 
 ---
 
-##  Estrategia de Ramas (Git Flow)
+## 🏛️ Project Architecture
 
-| **Rama**                | **Propósito**                            | **Recibe de**           | **Envía a**        | **Notas**                      |
+The Poseidon - Search and Booking backend follows a decoupled hexagonal / clean architecture combined with CQRS (Command Query Responsibility Segregation) that isolates business logic from infrastructure and external services by splitting the code into multiple components:
+
+* **🧠 Domain (Core)**: Contains the booking entities (`Booking`), value objects, enums (`BookingStatus`) and the core business rules including seat availability validation.
+
+* **🎯 Ports (Interfaces)**: Interfaces that define which operations the domain can perform (use cases exposed as input ports like `CreateBookingCommand`, `GetBookingQuery`) and required external interactions as output ports.
+
+* **🔌 Adapters (Infrastructure)**: Implementations of the ports that connect the domain with technologies such as HTTP controllers, MongoDB persistence and RabbitMQ event publishing.
+
+* **📡 Event-Driven**: Uses RabbitMQ (CloudAMQP) to publish booking events (`BookingCreatedEvent`, `BookingUpdatedEvent`, `BookingCancelledEvent`) for asynchronous communication with other microservices.
+
+Main benefits of this architecture:
+
+* ✅ **Separation of Concerns:** Clear boundaries between business logic and infrastructure.
+* ✅ **Maintainability:** Easier to modify or replace specific components.
+* ✅ **Scalability:** Components can evolve and scale independently.
+* ✅ **Testability:** The domain can be tested in isolation without database or message broker (86% test coverage achieved).
+* ✅ **Event-Driven Communication:** Decoupled microservices integration via asynchronous messaging.
+
+## 📂 Clean - Hexagonal Structure
+
+```
+📂 poseidon_search_and_booking
+ ┣ 📂 src/
+ ┃ ┣ 📂 main/
+ ┃ ┃ ┣ 📂 java/
+ ┃ ┃ ┃ ┗ 📂 edu/dosw/rideci/
+ ┃ ┃ ┃   ┣ 📄 PoseidonSearchAndBookingApplication.java
+ ┃ ┃ ┃   ┣ 📂 domain/
+ ┃ ┃ ┃   ┃ ┗ 📂 model/            # 🧠 Domain models (Booking)
+ ┃ ┃ ┃   ┣ 📂 application/
+ ┃ ┃ ┃   ┃ ┣ 📂 event/           # 📡 Domain events (BookingCreatedEvent, BookingUpdatedEvent)
+ ┃ ┃ ┃   ┃ ┣ 📂 mappers/         # 🔄 MapStruct mappers (BookingMapper, BookingMapperInitial)
+ ┃ ┃ ┃   ┃ ┣ 📂 ports/
+ ┃ ┃ ┃   ┃ ┃ ┗ 📂 in/             # 🎯 Input ports (CQRS commands & queries)
+ ┃ ┃ ┃   ┃ ┗ 📂 service/          # ⚙️ Use case implementations (BookingService)
+ ┃ ┃ ┃   ┣ 📂 exceptions/         # ❗ Custom domain exceptions (BookingNotFoundException, InsufficientSeatsException)
+ ┃ ┃ ┃   ┣ 📂 infrastructure/
+ ┃ ┃ ┃   ┃ ┣ 📂 adapters/        # 🔌 RabbitMQ event publisher adapter
+ ┃ ┃ ┃   ┃ ┣ 📂 config/           # ⚙️ Spring / Infra configuration (RabbitMQ, MongoDB)
+ ┃ ┃ ┃   ┃ ┣ 📂 controllers/
+ ┃ ┃ ┃   ┃ ┃ ┣ 📄 BookingController.java   # 🌐 REST controllers
+ ┃ ┃ ┃   ┃ ┃ ┗ 📂 dto/                   # 📨 Request / Response DTOs
+ ┃ ┃ ┃   ┃ ┗ 📂 persistence/
+ ┃ ┃ ┃   ┃   ┣ 📂 entity/          # 🗄️ MongoDB documents (BookingDocument)
+ ┃ ┃ ┃   ┃   ┗ 📂 repository/      # 🧰 Spring Data repositories & adapters
+ ┃ ┃ ┃   ┃     ┣ 📄 BookingRepository.java
+ ┃ ┃ ┃   ┃     ┗ 📄 BookingRepositoryAdapter.java
+ ┃ ┃ ┗ 📂 resources/
+ ┃ ┃   ┗ 📄 application.properties
+ ┣ 📂 test/
+ ┃ ┣ 📂 java/
+ ┃ ┃ ┗ 📂 edu/dosw/rideci/
+ ┃ ┃   ┣ 📂 config/
+ ┃ ┃   ┃ ┗ 📄 TestConfig.java
+ ┃ ┃   ┣ 📂 unit/
+ ┃ ┃   ┃ ┣ 📂 application/
+ ┃ ┃   ┃ ┃ ┣ 📄 BookingServiceTest.java (14 tests)
+ ┃ ┃   ┃ ┃ ┣ 📄 RabbitMQEventPublisherTest.java (2 tests)
+ ┃ ┃   ┃ ┃ ┣ 📄 MappersIntegrationTest.java (6 tests)
+ ┃ ┃   ┃ ┃ ┣ 📄 DTOsTest.java (5 tests)
+ ┃ ┃   ┃ ┃ ┗ 📄 DTOsInfrastructureTest.java (8 tests)
+ ┃ ┃   ┃ ┣ 📂 domain/
+ ┃ ┃   ┃ ┃ ┣ 📄 BookingDomainTest.java (6 tests)
+ ┃ ┃   ┃ ┃ ┗ 📄 BookingDocumentTest.java (6 tests)
+ ┃ ┃   ┃ ┗ 📂 infrastructure/
+ ┃ ┃   ┃   ┣ 📄 BookingControllerTest.java (10 tests)
+ ┃ ┃   ┃   ┣ 📄 BookingRepositoryAdapterTest.java (14 tests)
+ ┃ ┃   ┃   ┗ 📄 ExceptionsTest.java (4 tests)
+ ┃ ┃   ┣ 📂 e2e/
+ ┃ ┃   ┗ 📂 load/
+ ┃ ┗ 📂 resources/
+ ┃   ┗ 📄 application-test.properties
+ ┣ 📂 docs/
+ ┃ ┣ 📂 imagenes/
+ ┃ ┣ 📂 pdf/
+ ┃ ┗ 📂 uml/
+ ┃   ┣ DiagramaContexto.png
+ ┃   ┣ DiagramaComponentesGeneral.png
+ ┃   ┣ DiagramaComponentesEspecificos.png
+ ┃   ┣ DiagramaCasosUso.png
+ ┃   ┣ DiagramaClases.png
+ ┃   ┣ DiagramaBaseDeDatos.png
+ ┃   ┗ diagramaDespliegue.png
+ ┣ 📄 pom.xml
+ ┣ 📄 docker-compose.yml
+ ┣ 📄 Dockerfile
+ ┣ 📄 mvnw / mvnw.cmd
+ ┗ 📄 README.md
+```
+
+---
+
+# 📡 API Endpoints
+
+For detailed documentation refer to Swagger UI (running locally at `http://localhost:8080/swagger-ui.html`).
+
+Below is a summary of the main REST endpoints exposed by `BookingController` (base path: `/api/v1/bookings`).
+
+| Method | URI                        | Description                          | Request Body / Params |
+| :----- | :------------------------- | :----------------------------------- | :-------------------- |
+| `POST` | `/api/v1/bookings`         | Creates a new booking                 | `BookingRequestDTO` (JSON) |
+| `GET`  | `/api/v1/bookings`         | Retrieves all bookings                | — |
+| `GET`  | `/api/v1/bookings/{id}`    | Retrieves a booking by ID             | `id` (Path Variable) |
+| `PUT`  | `/api/v1/bookings/{id}`    | Updates an existing booking          | `id` + `BookingRequestDTO` (JSON) |
+| `DELETE` | `/api/v1/bookings/{id}`  | Cancels a booking by ID               | `id` (Path Variable) |
+
+
+### 📟 HTTP Status Codes
+Common status codes returned by the API.
+
+| Code | Status | Description |
+| :--- | :--- | :--- |
+| `200` | **OK** | Request processed successfully. |
+| `201` | **Created** | Booking created successfully. |
+| `204` | **No Content** | Booking cancelled successfully. |
+| `400` | **Bad Request** | Invalid data or missing parameters / Insufficient seats. |
+| `404` | **Not Found** | Booking ID does not exist. |
+| `500` | **Internal Server Error** | Unexpected error on server side.|
+
+---
+
+# Input and Output Data
+
+Data information per functionality (simplified overview):
+
+- **BookingRequestDTO (Input)**
+  - `travelId` (String)
+  - `passengerId` (String)
+  - `numberOfSeats` (Integer)
+  - Additional booking details
+
+- **BookingResponseDTO (Output)**
+  - `id` (String)
+  - `travelId` (String)
+  - `passengerId` (String)
+  - `numberOfSeats` (Integer)
+  - `status` (from `BookingStatus` enum: PENDING, CONFIRMED, CANCELLED)
+  - `createdAt` / `updatedAt` (LocalDateTime)
+  - Additional booking details
+
+You can inspect `BookingRequestDTO` and `BookingResponseDTO` classes under `infrastructure/controllers/dto` for full details.
+
+---
+
+# 🔗 Connections with other Microservices
+
+This module is part of the RideCi ecosystem and interacts with other services via RabbitMQ event-driven architecture:
+
+1. **Travel Management Module (Nemesis)**: Consumes booking events (`BookingCreatedEvent`, `BookingCancelledEvent`) to update travel seat availability.
+2. **Notifications Module**: Receives booking events to send alerts and confirmations to passengers about booking status changes.
+3. **Payments Module**: May receive booking events to trigger payment processing workflows.
+4. **Profiles / Passengers Module**: Provides passenger data associated with bookings.
+
+**Event Publishing Configuration:**
+- **RabbitMQ CloudAMQP**: `possum.lmq.cloudamqp.com:5671`
+- **SSL enabled** with TLS v1.2+
+- **Exchange**: `booking-events`
+- **Events Published**: 
+  - `BookingCreatedEvent`
+  - `BookingUpdatedEvent`
+  - `BookingCancelledEvent`
+
+---
+
+# Technologies
+
+The following technologies were used to build and deploy this module:
+
+### Backend & Core
+![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white)
+![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)
+![MapStruct](https://img.shields.io/badge/MapStruct-1.5.5-orange?style=for-the-badge)
+![Lombok](https://img.shields.io/badge/Lombok-BC4521?style=for-the-badge&logo=lombok&logoColor=white)
+
+### Database
+![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white)
+
+### Messaging
+![RabbitMQ](https://img.shields.io/badge/rabbitmq-%23FF6600.svg?&style=for-the-badge&logo=rabbitmq&logoColor=white)
+
+### DevOps & Infrastructure
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white)
+![Railway](https://img.shields.io/badge/Railway-131415?style=for-the-badge&logo=railway&logoColor=white)
+![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white)
+
+### CI/CD & Quality Assurance
+![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)
+![SonarQube](https://img.shields.io/badge/SonarQube-4E9BCD?style=for-the-badge&logo=sonarqube&logoColor=white)
+![JaCoCo](https://img.shields.io/badge/JaCoCo-86%25_Coverage-brightgreen?style=for-the-badge)
+
+### Documentation & Testing
+![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
+![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
+![JUnit5](https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=junit5&logoColor=white)
+![Mockito](https://img.shields.io/badge/Mockito-C5D9C8?style=for-the-badge)
+
+### Design
+![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?style=for-the-badge&logo=figma&logoColor=white)
+
+### Communication & Project Management
+![Jira](https://img.shields.io/badge/jira-%230A0FFF.svg?style=for-the-badge&logo=jira&logoColor=white)
+![Slack](https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white)
+
+---
+
+**Key Technology Details:**
+- **Java 17** (JDK-17)
+- **Spring Boot 3.5.7** (web, data-mongodb, amqp)
+- **MongoDB Atlas** cluster: `cluster0.huvfbuk.mongodb.net/MS_SEARCH_AND_BOOKING`
+- **RabbitMQ CloudAMQP** (SSL): `possum.lmq.cloudamqp.com:5671`
+- **MapStruct 1.5.5.Final** for DTO/Entity mapping
+- **JaCoCo 0.8.12** for code coverage (86% achieved)
+- **Lombok** for boilerplate reduction (@SuperBuilder for inheritance)
+
+---
+
+# 🌿 Branches Strategy & Structure
+
+This module follows a strict branching strategy based on Gitflow to ensure ordered versioning, code quality and continuous integration.
+
+| **Branch**                | **Purpose**                            | **Receive from**           | **Sent to**        | **Notes**                      |
 | ----------------------- | ---------------------------------------- | ----------------------- | ------------------ | ------------------------------ |
-| `main`                  | Código estable para PREPROD o Producción | `release/*`, `hotfix/*` | Despliegue         | Protegida con PR y CI exitoso  |
-| `develop`               | Rama principal de desarrollo             | `feature/*`             | `release/*`        | Base para integración continua |
-| `feature/*`             | Nuevas funcionalidades o refactors       | `develop`               | `develop`          | Se eliminan tras el merge      |
-| `release/*`             | Preparación de versiones estables        | `develop`               | `main` y `develop` | Incluye pruebas finales        |
-| `bugfix/*` o `hotfix/*` | Corrección de errores críticos           | `main`                  | `main` y `develop` | Parches urgentes               |
+| `main`                  | 🏁 Stable code for preproduction or Production | `release/*`, `hotfix/*` | 🚀 Production      | 🔐 Protected with PR and successful CI   |
+| `develop`               | 🧪 Main developing branch             | `feature/*`             | `release/*`        | 🔄 Base for continuous deployment |
+| `feature/*`             | ✨ New features or refactors to be implemented       | `develop`               | `develop`          | 🧹 Deleted after merge to develop      |
+| `release/*`             | 📦 Release preparation & final polish      | `develop`               | `main` and `develop` | 🧪  Includes final QA. No new features added here     |
+| `bugfix/*` or `hotfix/*` | 🛠️ Critical fixes for production         | `main`                  | `main` and `develop` | ⚡ Urgent patches. Highest priority             |
 
 ---
 
-##  Convenciones de Nomenclatura
+# 🏷️ Naming Conventions
 
-### Feature Branches
+## 🌿 Branch Naming
 
+### ✨ Feature Branches
+Used for new features or non-critical improvements.
+
+**Format:**
 ```
-feature/[nombre-funcionalidad]-hades_[codigo-jira]
-```
-
-**Ejemplos:**
-
-```
-- feature/authentication-module-hades_23
-- feature/security-service-hades_41
+feature/[shortDescription]
 ```
 
-**Reglas:**
+**Examples:**
+- `feature/authentication-module`
+- `feature/security-service`
+- `feature/usecases`
 
-*  Formato: *kebab-case*
-*  Incluir código Jira
-*  Descripción breve y clara
-*  Longitud máxima: 50 caracteres
+**Rules:**
+* 🧩 **Case:** strictly *kebab-case* (lowercase with hyphens)
+* ✍️ **Descriptive:** Short and meaningful description
+* Include Jira ticket code when available
 
 ---
 
-### Release Branches
+### 📦 Release Branches
+Used for preparing a new production release. Follows [Semantic Versioning](https://semver.org/).
 
+**Format:**
 ```
-release/[version]
+release/v[major].[minor].[patch]
 ```
 
-**Ejemplos:**
-
-```
-- release/1.0.0
-- release/1.1.0-beta
-```
+**Examples:**
+- `release/v1.0.0`
+- `release/v1.1.0-beta`
 
 ---
 
-### Hotfix Branches
+### 🚑 Hotfix Branches
+Used for urgent fixes in the production environment.
 
+**Format:**
 ```
-hotfix/[descripcion-breve-del-fix]
+hotfix/[shortDescription]
 ```
 
-**Ejemplos:**
-
-```
-- hotfix/fix-token-expiration
-- hotfix/security-patch
-```
+**Examples:**
+- `hotfix/fix-token-expiration`
+- `hotfix/security-patch`
 
 ---
 
-## Convenciones de Commits
+## 📝 Commit Message Guidelines
 
-### Formato Estándar
+We follow the **[Conventional Commits](https://www.conventionalcommits.org/)** specification.
 
-```
-[codigo-jira] [tipo]: [descripción breve de la acción]
-```
+### 🧱 Standard Format
 
-**Ejemplos:**
-
-```
-45-feat: agregar validación de token JWT
-46-fix: corregir error en autenticación por roles
+```text
+[jira-code] <type>: <short description>
 ```
 
----
+**Examples:**
+```
+45-feat: add JWT token validation
+46-fix: correct authentication role error
+25-docs: update README with new routes
+27-refactor: optimize security service
+29-test: add tests for AuthService
+30-chore: update Maven dependencies
+```
 
-### Tipos de Commit
+### 🧱 Commit Types
 
-| **Tipo**   | **Descripción**                      | **Ejemplo**                                     |
+| **Type**   | **Description**                      | **Example**                                     |
 | ----------- | ------------------------------------ | ----------------------------------------------- |
-| `feat`      | Nueva funcionalidad                  | `22-feat: implementar autenticación con JWT`    |
-| `fix`       | Corrección de errores                | `24-fix: solucionar error en endpoint de login` |
-| `docs`      | Cambios en documentación             | `25-docs: actualizar README con nuevas rutas`   |
-| `refactor`  | Refactorización sin cambio funcional | `27-refactor: optimizar servicio de seguridad`  |
-| `test`      | Pruebas unitarias o de integración   | `29-test: agregar tests para AuthService`       |
-| `chore`     | Mantenimiento o configuración        | `30-chore: actualizar dependencias de Maven`    |
+| `feat`      | New feature                  | `22-feat: implement JWT authentication`    |
+| `fix`       | Bug fix                | `24-fix: resolve login endpoint error` |
+| `docs`      | Documentation changes             | `25-docs: update README with new routes`   |
+| `refactor`  | Refactoring without functional change | `27-refactor: optimize security service`  |
+| `test`      | Unit or integration tests   | `29-test: add tests for AuthService`       |
+| `chore`     | Maintenance or configuration        | `30-chore: update Maven dependencies`    |
 
-
-**Reglas:**
-
-* Un commit = una acción completa
-* Máximo **72 caracteres** por línea
-* Usar modo imperativo (“agregar”, “corregir”, etc.)
-* Descripción clara de qué y dónde
-* Commits pequeños y frecuentes
+**Rules:**
+* One commit = one complete action
+* Maximum **72 characters** per line
+* Use imperative mood ("add", "fix", etc.)
+* Clear description of what and where
+* Small and frequent commits
 
 ---
 
-## Arquitectura del Proyecto
+# 📐 System Architecture & Design
 
-El backend de **POSEIDON_SEARCH_AND_BOOKING** sigue una **arquitectura limpia y desacoplada**, priorizando:
+This section provides a visual representation of the module's architecture illustrating the base diagrams to show the application structure and components flow.
 
-* Separación de responsabilidades
-* Mantenibilidad
-* Escalabilidad
-* Facilidad de pruebas
+## 🧩 Context Diagram
 
----
-
-## Estructura de Capas
-
-```
-📂 poseidon_backend
- ┣ 📂 domain/
- ┃ ┣ 📄 Entities/
- ┃ ┣ 📄 ValueObjects/
- ┃ ┣ 📄 Enums/
- ┃ ┣ 📄 Services/
- ┃ ┗ 📄 Events/
- ┣ 📂 application/
- ┃ ┣ 📄 UseCases/
- ┃ ┣ 📄 DTOs/
- ┃ ┣ 📄 Mappers/
- ┃ ┗ 📄 Exceptions/
- ┣ 📂 infrastructure/
- ┃ ┣ 📄 Controllers/
- ┃ ┣ 📄 Database/
- ┃ ┣ 📄 Repositories/
- ┃ ┣ 📄 Config/
- ┃ ┗ 📄 Security/
- ┗ 📄 pom.xml
-```
+This diagram shows how the Search and Booking module fits within the RideCi ecosystem and its interactions with other microservices.
 
 ---
 
-## Tecnologías Utilizadas
-
-| **Categoría**              | **Tecnologías**                           |
-| -------------------------- | ----------------------------------------- |
-| **Backend**                | Java 17, Spring Boot, Maven               |
-| **Base de Datos**          | MongoDB, PostgreSQL                       |
-| **Infraestructura**        | Docker, Kubernetes (K8s), Railway, Vercel |
-| **Seguridad**              | JWT, Spring Security                      |
-| **Integración Continua**   | GitHub Actions, Jacoco, SonarQube         |
-| **Documentación y Diseño** | Swagger UI, Figma                         |
-| **Comunicación y Gestión** | Slack, Jira                               |
-| **Testing**                | Postman                                   |
+![Context Diagram](./docs/uml/DiagramaContexto.png)
 
 ---
 
-## Arquitectura Limpia - Organización de Capas
+## 🧩 Deployment Diagram
 
-### DOMAIN (Dominio)
+This diagram illustrates the cloud deployment architecture and workflow of the search and booking module.
 
-Representa el **núcleo del negocio**, define **qué hace el sistema, no cómo lo hace**.
-Incluye entidades, objetos de valor, enumeraciones, interfaces de repositorio y servicios de negocio.
+The architecture includes:
 
-### APPLICATION (Aplicación)
+- **Client (Front-End Web App)**: React + TypeScript application communicating via HTTPS and WebSockets
+- **Search and Book Backend**: Spring Boot microservice with JaCoCo, SonarQube, and Docker
+- **MongoDB Database**: Atlas cluster storing bookings and travel data
+- **External Microservices**:
+  - Travel Management (Nemesis)
+  - Notifications (Email/App)
+  - Payments (Registration)
 
-Orquesta la lógica del negocio a través de **casos de uso**, **DTOs**, **mappers** y **excepciones personalizadas**.
-
-### INFRASTRUCTURE (Infraestructura)
-
-Implementa los **detalles técnicos**: controladores REST, persistencia, configuración, seguridad y conexión con servicios externos.
-
----
-
-## Diagramas del Módulo
-
-
-## Diagrama de Contexto
-
-![alt text](docs/uml/DiagramaContexto.png)
-
+![Deployment Diagram](./docs/uml/diagramaDespliegue.png)
 
 ---
 
-### Diagrama de Despliegue
+## 🧩 General Components Diagram
 
-![DiagramaDespliegue](docs/uml/diagramaDespliegue.png)
+This diagram describes the main components, technologies and communication flow of the RideCI system, oriented to travel search and booking.
 
-Este diagrama muestra la arquitectura de despliegue del módulo **Search and Book**, incluyendo cómo interactúan el cliente, el backend principal, los microservicios externos, la base de datos MongoDB y las herramientas CI/CD.
+The architecture is composed of:
 
+- **Frontend (RideCI Front)**: TypeScript, React, Figma (UI/UX), deployed on Vercel
+- **API Gateway**: Centralizes requests from frontend and distributes to microservices
+- **Microservice Search and Booking**: Manages travel searches and bookings
+- **Database Travel DB**: MongoDB storing travel and booking data
 
-####  Cliente (Front-End Web App)
-
-La aplicación cliente está desarrollada con:
-
-- **React**
-- **TypeScript**
-
-Se comunica con el backend mediante:
-
-- **HTTPS**
-- **WebSockets**
-
-Desde aquí el usuario realiza búsquedas, reservas y recibe actualizaciones en tiempo real.
-
-#### **Search and Book**
-Responsabilidades:
-- Gestión de búsqueda de viajes  
-- Administración de reservas  
-- Alertas emergentes  
-- Manejo de disponibilidad de viajes  
-- Comunicación con otros servicios del ecosistema  
-
-Tecnologías internas:
-- **Spring Boot**
-- **Jacoco** (cobertura)
-- **SonarQube** (análisis de calidad)
-- **Docker**
-
-Este backend actúa como punto central entre el cliente, la base de datos y los microservicios.
-
-
-#### Microservicios Externos
-
- **a) Gestión de Viajes (Viajes)**
-- Maneja la disponibilidad y administración de los viajes.
-- Recibe solicitudes del módulo Search and Book.
-
-**b) Notificaciones (Email/App)**
-- Envía correos, alertas y notificaciones.
-- Recibe eventos del backend Search and Book.
-
-**c) Pagos (Registro)**
-- Administra el registro de pagos.
-- Se integra para almacenar transacciones relacionadas con reservas.
-
-
-#### Base de Datos — MongoDB
-
-El módulo Search and Book se conecta directamente a **MongoDB** mediante el driver oficial.
-
-Datos almacenados:
-- **Viajes disponibles**
-- **Reservas**
-- **Estado de cada reserva**
+![General Components Diagram](./docs/uml/DiagramaComponentesGeneral.png)
 
 ---
 
-### Diagrama de Componentes General
+## 🧩 Specific Components Diagram
 
-![alt text](docs/uml/diagramaComponentesGeneral.png)
+This diagram visualizes the internal architecture of the **Search and Booking** microservice, following **Clean Architecture** and **Hexagonal Architecture (Ports & Adapters)** principles.
 
-Este diagrama describe los componentes principales, tecnologías y flujo de comunicación del sistema RideCI, orientado a la búsqueda y reserva de viajes.
+It includes:
 
+### Controllers
+Point of entry for requests from the API Gateway:
+- **SearchController**: Handles search and travel availability requests
+- **BookingController**: Manages creation, cancellation, query and update of bookings
 
-#### Arquitectura General
+### Use Cases (Business Logic)
+- **Search**: GetTravelUseCase, SearchAvailableTravelsUseCase
+- **Bookings**: CreateBookingUseCase, CancelBookingUseCase, GetBookingUseCase, PutBookingUseCase, NotifyBookingStatusUseCase
+- **Confirmation & Payment**: ConfirmBookingUseCase, ConfirmPaymentUseCase, ValidateBookingAvailabilityUseCase
 
-La arquitectura está compuesta por:
-
-- **Frontend (RideCI Front)**
-- **API Gateway**
-- **Microservicio Search and Booking**
-- **Base de Datos Travel DB**
-
-#### Frontend – RideCI Front
-
-Desarrollado con:
-
-- **TypeScript**
-- **React**
-- **Figma** (diseño UI/UX)
-- **Vercel** (despliegue)
-
-El frontend se encarga de la interfaz de usuario y se comunica con el sistema mediante el **API Gateway**.
-
-
-#### API Gateway
-
-El API Gateway centraliza las peticiones del frontend y las distribuye a los microservicios.
-
-
-#### Microservicio Search and Booking
-
-Este microservicio se encarga de:
-
-- Buscar viajes disponibles
-- Gestionar reservas
-- Consultar datos de disponibilidad y rutas
-
-
-#### Base de Datos – Travel DB
-
-La información de viajes y reservas se almacena en **Travel DB**, basada en **MongoDB**
-
-
----
-
-### Diagrama de Componentes Específico
-
-![alt text](docs/uml/diagramaComponentesEspecificos.png)
-
-Este documento describe la arquitectura interna del microservicio **Search and Booking**, siguiendo los principios de **Clean Architecture** y **Arquitectura Hexagonal (Ports & Adapters)**.  
-Incluye controladores, casos de uso, puertos, adaptadores, repositorios e integraciones externas.
-
-####  Flujo General del Sistema
-
-El frontend se comunica con el backend a través de un **API Gateway**.  
-El backend procesa peticiones de búsqueda y reserva utilizando casos de uso, conectados mediante puertos y adaptadores hacia la base de datos y microservicios externos.
-
-#### Componentes Internos del Backend
-
-  **Controllers**
-
-Punto de entrada de las solicitudes desde el API Gateway:
-
-- SearchController  
-  - Maneja solicitudes de búsqueda y disponibilidad de viajes.
-
-- BookingController  
-  - Gestiona creación, cancelación, consulta y actualización de reservas.
-
----
-
-#### Casos de Uso (Use Cases)
-
-Los casos de uso representan la lógica de negocio del sistema:
-
-**Casos de búsqueda**
-- GetTravelUseCase
-- SearchAvailableTravelsUseCase
-
- **Casos de reservas**
-- CreateBookingUseCase
-- CancelBookingUseCase
-- GetBookingUseCase
-- PutBookingUseCase
-- NotifyBookingStatusUseCase
-
-**Casos de confirmación y pago**
-- ConfirmBookingUseCase
-- ConfirmPaymentUseCase
-- ValidateBookingAvailabilityUseCase
-#### Puertos (Ports)
-
-Interfaces que permiten el desacoplamiento entre lógica de negocio y servicios externos:
-
- Para búsqueda
+### Ports (Interfaces)
+Interfaces allowing decoupling between business logic and external services:
 - SearchAvailableTravelsPort
-
- Para reservas
 - BookingRepositoryPort
-
-Para validaciones
 - ValidateBookingAvailabilityPort
-
- Para confirmaciones
 - ConfirmBookingPort
 - ConfirmPaymentPort
 
----
+### Adapters (Implementations)
+Concrete implementations of ports, responsible for interacting with external systems:
+- Search Adapters: SearchAdapter, SearchAvailableTravelsAdapter, MapperSearchAdapter
+- Booking Adapters: BookingAdapter, MapperBookingAdapter
+- Confirmation & Payment Adapters: ConfirmBookingAdapter, ConfirmPaymentAdapter, ValidateBookingAvailabilityAdapter
 
-#### Adaptadores 
-
-Implementaciones concretas de los puertos, encargadas de interactuar con sistemas externos:
-
- Adaptadores de búsqueda
-- SearchAdapter
-- SearchAvailableTravelsAdapter
-- MapperSearchAdapter
-
- Adaptadores de reservas
-- BookingAdapter
-- MapperBookingAdapter
-
-Adaptadores de confirmación y pagos
-- ConfirmBookingAdapter
-- ConfirmPaymentAdapter
-- ValidateBookingAvailabilityAdapter
-
-#### Repositorios
-
-Manejadores del acceso a datos y persistencia:
-
+### Repositories
+Data access and persistence handlers:
 - BookingRepository
-- MapperRepository
+- BookingRepositoryAdapter
 
-Ambos implementan los puertos de repositorio necesarios para los casos de uso.
+### External Integrations
+Connections with other specialized microservices:
+- **TravelManagement (Nemesis)**: Travel queries and availability updates
+- **Notifications**: Sending notifications about booking status
+- **Payments**: Payment management and confirmation
 
----
+All external services use: Spring Boot, Docker, SonarQube, JaCoCo
 
-#### Integraciones Externas
-
-El servicio se conecta con otros microservicios especializados:
-
-**TravelManagement**
-- Consultas de viajes
-- Actualización de disponibilidad  
-Tecnologías: Spring Boot, Docker, SonarQube, Jacoco
-
-**Notifications**
-- Envío de notificaciones sobre estado de reservas  
-Tecnologías: Spring Boot, Docker, SonarQube, Jacoco
-
-**Payments**
-- Gestión y confirmación de pagos  
-Tecnologías: Spring Boot, Docker, SonarQube, Jacoco
-
-#### Base de Datos
-
-La información persistente del sistema se encuentra en:
-
-- **MongoDB** 
-
-Se almacenan datos de:
-- Reservas
-- Estado de viajes
-- Confirmaciones y pagos
+![Specific Components Diagram](./docs/uml/DiagramaComponentesEspecificos.png)
 
 ---
 
-## Diagrama de Casos de Uso
+## 🧩 Use Cases Diagram
 
-![alt text](docs/uml/DiagramaCasosUso.png)
+This diagram presents the main functionalities defined by each actor, facilitating better understanding when implementing the module's multiple functions and identifying each actor's roles.
 
----
-
-### Diagrama de Clases
-
-![alt text](docs/uml/DiagramaClases.png)
+![Use Cases Diagram](./docs/uml/DiagramaCasosUso.png)
 
 ---
 
-### Diagrama de Bases de Datos
+## 🧩 Class Diagram
 
-![DiagramaBasesDatos](docs/uml/DiagramaBaseDeDatos.png)
+Based on the Specific Components diagram, this class diagram shows the domain models, their relationships, and the Observer design pattern implementation for notifying passengers about booking changes.
+
+![Class Diagram](./docs/uml/DiagramaClases.png)
 
 ---
 
+## 🧩 Database Diagram
 
+This diagram represents how data is stored in MongoDB, showing the document structure and relationships between collections.
+
+Key collections:
+- **Bookings**: Main collection storing booking documents with passenger, travel, and seat information
+- Embedded documents for optimization
+- Referenced documents for normalization
+
+![Database Diagram](./docs/uml/DiagramaBaseDeDatos.png)
+
+---
+
+# 🚀 Getting Started
+
+This section guides you through setting up the project locally. This project requires **Java 17**. If you have a different version, you can change it or we recommend using **Docker** to ensure compatibility before compiling.
+
+## Prerequisites
+
+- **Java 17** (JDK-17)
+- **Maven 3.8+**
+- **Docker** (optional but recommended)
+- **MongoDB** account (MongoDB Atlas) or local instance
+- **RabbitMQ** account (CloudAMQP) or local instance
+
+---
+
+## Clone & Open Repository
+
+```bash
+git clone https://github.com/RIDECI/POSEIDON_SEARCH_AND_BOOKING.git
+```
+
+```bash
+cd POSEIDON_SEARCH_AND_BOOKING
+```
+
+You can open it in your favorite IDE (IntelliJ IDEA, Eclipse, VS Code).
+
+---
+
+## Environment Configuration
+
+Create a `.env` file or configure `application.properties` with the following variables:
+
+```properties
+# MongoDB Configuration
+spring.data.mongodb.uri=mongodb+srv://<username>:<password>@cluster0.huvfbuk.mongodb.net/MS_SEARCH_AND_BOOKING?retryWrites=true&w=majority
+
+# RabbitMQ Configuration
+spring.rabbitmq.host=possum.lmq.cloudamqp.com
+spring.rabbitmq.port=5671
+spring.rabbitmq.username=<your-username>
+spring.rabbitmq.password=<your-password>
+spring.rabbitmq.virtual-host=<your-vhost>
+spring.rabbitmq.ssl.enabled=true
+spring.rabbitmq.ssl.algorithm=TLSv1.2
+
+# Server Configuration
+server.port=8080
+```
+
+**Note**: Replace `<username>`, `<password>`, `<your-username>`, `<your-password>`, and `<your-vhost>` with your actual credentials.
+
+---
+
+## Dockerize the Project (Recommended)
+
+Dockerizing before compiling the project avoids configuration issues and ensures environment consistency.
+
+```bash
+docker compose up -d
+```
+
+This will start MongoDB and RabbitMQ containers locally if configured in `docker-compose.yml`.
+
+---
+
+## Install Dependencies & Compile Project
+
+Download dependencies and compile the source code.
+
+```bash
+mvn clean install
+```
+
+```bash
+mvn clean compile
+```
+
+---
+
+## Run the Project
+
+Start the Spring Boot server:
+
+```bash
+mvn spring-boot:run
+```
+
+The application will be available at `http://localhost:8080`
+
+---
+
+## Access Swagger Documentation
+
+Once the application is running, access the interactive API documentation at:
+
+```
+http://localhost:8080/swagger-ui.html
+```
+
+---
+
+# 🧪 Testing
+
+Testing is an essential part of the project functionality. This section shows the code coverage and code quality analyzed with tools like JaCoCo and SonarQube.
+
+## Test Suite Overview
+
+The project includes **75 comprehensive tests** across 10 test classes, achieving **86% code coverage**:
+
+### Unit Tests
+
+#### Application Layer (35 tests)
+- **BookingServiceTest.java** - 14 tests
+  - Tests for business logic, booking creation, updates, cancellation
+  - Seat availability validation
+  - Exception handling
+
+- **RabbitMQEventPublisherTest.java** - 2 tests
+  - Event publishing to RabbitMQ
+  - Message conversion and routing
+
+- **MappersIntegrationTest.java** - 6 tests
+  - Integration tests with @SpringBootTest
+  - BookingMapper and BookingMapperInitial functionality
+  - Bidirectional mapping, null handling, status mapping
+
+- **DTOsTest.java** - 5 tests
+  - Request DTO validation
+  - Response DTO construction
+
+- **DTOsInfrastructureTest.java** - 8 tests
+  - Infrastructure layer DTOs
+  - Data transformation accuracy
+
+#### Domain Layer (12 tests)
+- **BookingDomainTest.java** - 6 tests
+  - Domain model behavior
+  - Business rules validation
+  - Booking state transitions
+
+- **BookingDocumentTest.java** - 6 tests
+  - MongoDB document entity
+  - Builder pattern functionality
+  - Equals/hashCode/toString methods
+  - Entity state management
+
+#### Infrastructure Layer (28 tests)
+- **BookingControllerTest.java** - 10 tests (MockMvc)
+  - REST endpoint testing
+  - Request/response validation
+  - HTTP status codes
+  - Error handling
+
+- **BookingRepositoryAdapterTest.java** - 14 tests
+  - Repository adapter behavior
+  - Database interaction mocking
+  - CRUD operations
+  - Query methods
+
+- **ExceptionsTest.java** - 4 tests
+  - Custom exception handling
+  - BookingNotFoundException
+  - InsufficientSeatsException
+
+---
+
+## Running Tests
+
+### Run All Tests
+```bash
+mvn test
+```
+
+### Run Tests with Coverage Report
+```bash
+mvn clean test jacoco:report
+```
+
+### View Coverage Report
+After running tests, open the JaCoCo HTML report:
+```
+target/site/jacoco/index.html
+```
+
+---
+
+## 📊 Code Coverage (JaCoCo)
+
+Current coverage: **86%** (exceeding the 80% target)
+
+### Coverage Breakdown by Package
+
+| Package | Coverage |
+|---------|----------|
+| `edu.dosw.rideci.infrastructure.adapters` | **100%** |
+| `edu.dosw.rideci.application.service` | **100%** |
+| `edu.dosw.rideci.infrastructure.controllers` | **100%** |
+| `edu.dosw.rideci.exceptions` | **100%** |
+| `edu.dosw.rideci.infrastructure.persistence.entity` | **76%** |
+| `edu.dosw.rideci.application.event` | **70%** |
+
+### Overall Metrics
+- **Instructions**: 981 of 1,129 covered (86%)
+- **Lines**: 156 of 158 covered (98%)
+- **Methods**: 74 of 87 covered (85%)
+- **Classes**: 11 of 11 covered (100%)
+
+### JaCoCo Configuration
+
+The project is configured to exclude auto-generated code from coverage metrics:
+
+```xml
+<execution>
+    <id>jacoco-check</id>
+    <goals>
+        <goal>check</goal>
+    </goals>
+    <configuration>
+        <rules>
+            <rule>
+                <element>BUNDLE</element>
+                <limits>
+                    <limit>
+                        <counter>INSTRUCTION</counter>
+                        <value>COVEREDRATIO</value>
+                        <minimum>0.80</minimum>
+                    </limit>
+                </limits>
+            </rule>
+        </rules>
+        <excludes>
+            <exclude>**/mappers/**/*Impl.class</exclude>
+        </excludes>
+    </configuration>
+</execution>
+```
+
+**Note**: MapStruct-generated implementations (`*Impl.class`) are excluded from coverage as they are auto-generated code.
+
+---
+
+## 🔍 Static Analysis (SonarQube)
+
+The project is configured for continuous quality analysis with SonarQube, monitoring:
+
+- Code smells
+- Security vulnerabilities
+- Technical debt
+- Code duplication
+- Complexity metrics
+
+SonarQube analysis runs automatically in the CI/CD pipeline via GitHub Actions.
+
+---
+
+## Test Best Practices
+
+The test suite follows these best practices:
+
+✅ **Arrange-Act-Assert (AAA)** pattern  
+✅ **Meaningful test names** describing the scenario  
+✅ **Mocking external dependencies** (MongoDB, RabbitMQ)  
+✅ **Test isolation** - each test is independent  
+✅ **Edge case coverage** - null values, empty lists, boundary conditions  
+✅ **Integration tests** for critical flows with @SpringBootTest  
+✅ **Exception testing** - verify error handling behavior  
+✅ **Builder pattern usage** - clean test data creation  
+
+---
+
+## Continuous Integration
+
+Tests run automatically on every push and pull request via GitHub Actions, ensuring:
+
+- All tests pass before merge
+- Coverage remains above 80%
+- No new bugs or vulnerabilities introduced
+- Code quality standards maintained
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow the branching strategy and commit conventions outlined in this README.
+
+1. Fork the repository
+2. Create your feature branch (`feature/amazing-feature`)
+3. Commit your changes following conventional commits
+4. Push to the branch
+5. Open a Pull Request
+
+---
+
+## 📧 Contact
+
+For questions or support, please contact the development team via Slack or Jira.
+
+---
+
+**Built with ❤️ by the RideCi Team**
