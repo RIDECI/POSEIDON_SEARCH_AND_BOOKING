@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -33,7 +34,8 @@ import edu.dosw.rideci.infrastructure.controllers.dto.Response.BookingResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/bookings")
+@RequestMapping("/api/v1/bookings")  // ✅ CAMBIADO: Agregado /api/v1
+@CrossOrigin(origins = "*")  // ✅ AGREGADO: Para permitir CORS desde tu frontend
 @RequiredArgsConstructor
 public class BookingController {
 
@@ -51,21 +53,21 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(
             @RequestBody BookingRequest bookingRequest) {
-        
+
         // Mapear BookingRequest (Infrastructure) a CreateBookingCommand (Application)
-        edu.dosw.rideci.application.dto.CreateBookingCommand command = 
-            edu.dosw.rideci.application.dto.CreateBookingCommand.builder()
-                .travelId(bookingRequest.getTravelId())
-                .passengerId(bookingRequest.getPassengerId())
-                .origin(bookingRequest.getOrigin())
-                .destination(bookingRequest.getDestination())
-                .reservedSeats(bookingRequest.getReservedSeats())
-                .totalAmount(bookingRequest.getTotalAmount())
-                .status(bookingRequest.getStatus())
-                .notes(bookingRequest.getNotes())
-                .bookingDate(bookingRequest.getBookingDate())
-                .build();
-        
+        edu.dosw.rideci.application.dto.CreateBookingCommand command =
+                edu.dosw.rideci.application.dto.CreateBookingCommand.builder()
+                        .travelId(bookingRequest.getTravelId())
+                        .passengerId(bookingRequest.getPassengerId())
+                        .origin(bookingRequest.getOrigin())
+                        .destination(bookingRequest.getDestination())
+                        .reservedSeats(bookingRequest.getReservedSeats())
+                        .totalAmount(bookingRequest.getTotalAmount())
+                        .status(bookingRequest.getStatus())
+                        .notes(bookingRequest.getNotes())
+                        .bookingDate(bookingRequest.getBookingDate())
+                        .build();
+
         Booking booking = createBookingUseCase.createBooking(command);
         BookingResponse response = bookingMapper.toResponse(booking);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
