@@ -35,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/bookings")  // ✅ CAMBIADO: Agregado /api/v1
-@CrossOrigin(origins = "*")  // ✅ AGREGADO: Para permitir CORS desde tu frontend
 @RequiredArgsConstructor
 public class BookingController {
 

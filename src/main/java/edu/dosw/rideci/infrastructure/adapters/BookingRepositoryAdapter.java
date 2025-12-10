@@ -37,7 +37,7 @@ public class BookingRepositoryAdapter implements BookingRepositoryPort {
     public void confirmBooking(String id) {
 
         BookingDocument booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new BookingNotFoundException("The booking with id: {id} not found"));
+                .orElseThrow(() -> new BookingNotFoundException("The booking with id: " + id + " not found"));
 
         booking.setConfirmationDate(LocalDateTime.now());
         booking.setStatus(BookingStatus.CONFIRMED);
@@ -51,7 +51,7 @@ public class BookingRepositoryAdapter implements BookingRepositoryPort {
     public void cancelBooking(String id) {
 
         BookingDocument booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new BookingNotFoundException("The booking with id: {id} not found"));
+                .orElseThrow(() -> new BookingNotFoundException("The booking with id:" +id+ " not found"));
 
         booking.setCancellationDate(LocalDateTime.now());
         booking.setStatus(BookingStatus.CANCELLED);
@@ -95,7 +95,7 @@ public class BookingRepositoryAdapter implements BookingRepositoryPort {
     @Override
     public void completeBooking(String id) {
         BookingDocument booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new BookingNotFoundException("The booking with id: {id} not found"));
+                .orElseThrow(() -> new BookingNotFoundException("The booking with id: +"+ id + " not found"));
 
         booking.setStatus(BookingStatus.COMPLETED);
         booking.setUpdatedAt(LocalDateTime.now());
