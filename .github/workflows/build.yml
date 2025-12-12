@@ -19,6 +19,9 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
+        path: ~/.sonar/cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
     
     - name: Build with Maven
       run: mvn clean install -DskipTests
@@ -53,6 +56,11 @@ jobs:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
+    - name: Build and analyze
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=POSEIDON_SEARCH_AND_BOOKING -Dsonar.projectName='POSEIDON_SEARCH_AND_BOOKING'
     # SonarQube Scan - Descomentado cuando configures los secretos: SONAR_PROJECT_KEY, SONAR_HOST_URL, SONAR_TOKEN
     # - name: SonarQube Scan
     #   run: mvn sonar:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }}
