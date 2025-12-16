@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import edu.dosw.rideci.application.mappers.BookingMapperInitial;
 import edu.dosw.rideci.application.ports.in.CancelBookingUseCase;
@@ -34,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/bookings")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class BookingController {
 
@@ -81,6 +83,13 @@ public class BookingController {
     public ResponseEntity<Void> cancelBooking(@PathVariable String id) {
         cancelBookingUseCase.cancelBooking(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{bookingId}/cancel")
+    @CrossOrigin(origins = "http://localhost:5173")
+    public ResponseEntity<Void> cancelBookingPut(@PathVariable String bookingId) {
+        cancelBookingUseCase.cancelBooking(bookingId);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
