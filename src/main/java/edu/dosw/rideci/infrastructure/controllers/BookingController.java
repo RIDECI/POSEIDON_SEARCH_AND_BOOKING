@@ -85,6 +85,13 @@ public class BookingController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{bookingId}/cancel")
+    @CrossOrigin(origins = "http://localhost:5173")
+    public ResponseEntity<Void> cancelBookingPut(@PathVariable String bookingId) {
+        cancelBookingUseCase.cancelBooking(bookingId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<BookingResponse> getBookingById(@PathVariable String id) {
         Booking booking = getBookingByIdUseCase.getBookingById(id);
