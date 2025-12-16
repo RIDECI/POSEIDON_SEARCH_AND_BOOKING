@@ -12,7 +12,6 @@ import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/v1/trips")
-@CrossOrigin(origins = "*")
 public class TripSearchController {
 
     @GetMapping("/{id}")

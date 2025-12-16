@@ -12,7 +12,6 @@ import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/v1/accompaniments")
-@CrossOrigin(origins = "*")
 public class AccompanimentController {
 
     // Endpoint para buscar acompañamientos

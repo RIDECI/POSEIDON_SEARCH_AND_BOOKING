@@ -14,7 +14,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/accompaniment-requests")
-@CrossOrigin(origins = "*")
 public class AccompanimentRequestController {
 
     private final Map<String, AccompanimentRequestResponse> requests = new HashMap<>();
